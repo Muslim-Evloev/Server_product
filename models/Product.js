@@ -1,21 +1,20 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
 const productSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, "Заголовок не заполнен!"],
-    trim: true
+    trim: true,
   },
   description: {
     type: String,
     required: [true, "Описание не заполнено!"],
-    trim: true
+    trim: true,
   },
   price: {
     type: Number,
     required: [true, "Цена не указана!"],
-    min: 0
-  }
+    min: 0,
+  },
 });
 
-module.exports = mongoose.model("Product", productSchema);
+export default productSchema;

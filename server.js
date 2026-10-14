@@ -1,92 +1,25 @@
-// Подключение модуля Express для создания веб-сервера
-const express = require("express"); 
 
-// Подключение Mongoose для работы с базой данных MongoDB
-const mongoose = require("mongoose"); 
+import express from "express"
+import mongoose from "mongoose";
+import router from "./router.js";
 
-// Импорт модели Product для взаимодействия с коллекцией товаров в БД
-const Product = require("./models/Product"); 
+const PORT = 5000;
 
-// Определение порта, на котором будет запускаться сервер
-const PORT = 5000; 
+const app = express();
+app.use(express.json());
+app.use( router)
 
-// Создание экземпляра приложения Express
-const app = express(); 
+mongoose
+  .connect("mongodb://localhost:27017/products")
+  .then(() => {
+    console.log("Успешное подключение к БД!");
+  })
+  .catch((error) => {
+    console.error(`Ошибка при подключении к БД: ${error}`);
+  });
 
-// Встроенный посредник (middleware) для автоматического парсинга входящих запросов в формате JSON
-app.use(express.json()); 
 
-// Подключение к локальной базе данных MongoDB под названием "products"
-mongoose 
- .connect("mongodb://localhost:27017/products") 
- // Колбэк, который выполнится при успешном подключении к базе данных
- .then(() => { 
- console.log("Успешное подключение к БД!"); 
- }) 
- // Колбэк для отлова и вывода ошибок, если подключиться к БД не удалось
- .catch((error) => { 
- console.error(`Ошибка при подключении к БД: ${error}`); 
- }); 
 
-// Обработчик GET-запроса на маршрут "/products" для получения списка всех товаров
-app.get("/products" , async(req , res)=>{ 
- try { 
- // Асинхронный запрос к БД: поиск и получение всех документов из коллекции продуктов
- const products = await Product.find(); 
- // Отправка клиенту найденных товаров в формате JSON
- res.json(products) 
- }catch(error){ 
- // Отправка клиенту сообщения об ошибке, если что-то пошло не так при запросе к БД
- res.send(`Ошибка при получении товаров: ${error}`) 
- } 
- }) 
-
-// Обработчик POST-запроса на маршрут "/addproduct" для добавления нового товара
-app.post("/addproduct", async (req, res) => { 
- // Деструктуризация данных (название, описание, цена) из тела входящего запроса (req.body)
- const { title, description, price } = req.body; 
- try { 
- // Создание нового экземпляра товара на основе полученных данных
- const newProduct = await Product.create({ 
- title, 
- description, 
- price, 
- }); 
- // Сохранение созданного товара в базу данных
- await newProduct.save(); 
- // Отправка клиенту успешного статуса ответа
- res.send("Товар добавлен успешно!"); 
- } catch (error) { 
- // Логирование ошибки в консоль сервера
- console.error(`Ошибка при добавлении товара: ${error}`); 
- // Отправка клиенту сообщения о неудачном добавлении товара
- res.send("Ошибка при добавлении товара!"); 
- } 
- }); 
-
-// Обработчик DELETE-запроса на маршрут "/product/:id" для удаления товара по его ID
-app.delete("/product/:id", async (req, res) => { 
- try { 
- // Извлечение параметра ID товара из URL запроса (req.params)
- const { id } = req.params; 
- // Асинхронное удаление товара из БД по его уникальному идентификатору
- const product = await Product.findByIdAndDelete(id); 
- // Проверка: если товар с таким ID не был найден в БД
- if (!product) { 
- res.send("Такого товара не существует!") 
- } 
- // Отправка клиенту сообщения об успешном удалении
- res.send("Товар успешно удалён!"); 
- } catch (error) { 
- // Логирование ошибки удаления в консоль сервера
- console.error(`Ошибка при удалении товара: ${error}`); 
- // Отправка клиенту сообщения о неудачном удалении
- res.send("Ошибка при удалении товара!"); 
- } 
- }); 
-
-// Запуск веб-сервера на указанном ранее порту (5000)
-app.listen(PORT, () => { 
- // Вывод сообщения в консоль о том, что сервер успешно запущен и слушает порт
- console.log(`Успешное поключение к серверу на порту ${PORT}`); 
- });
+app.listen(PORT, () => {
+  console.log(`Успешное поключение к серверу на порту ${PORT}`);
+});
